@@ -66,8 +66,10 @@ func (s *server) Start(pctx context.Context) {
 
 	go s.gratefulShutdown(pctx, close)
 
+	s.UserService()
+
 	if err := s.app.Start(s.cfg.App.Port); err != nil && err != http.ErrServerClosed {
-		log.Fatal("Failed to start Server %v ", err)
+		log.Printf("Failed to start Server %v ", err)
 	}
 
 }

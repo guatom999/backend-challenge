@@ -23,7 +23,7 @@ type (
 
 func GetConfig() *Config {
 
-	if err := godotenv.Load("../.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Error loading env file %s", err.Error())
 	}
 
@@ -31,6 +31,19 @@ func GetConfig() *Config {
 		App: App{
 			Port: os.Getenv("APP_PORT"),
 		},
+		Db: Db{
+			Uri: os.Getenv("DB_URI"),
+		},
+	}
+}
+
+func GetMigrateConfig() *Config {
+
+	if err := godotenv.Load("../../.env"); err != nil {
+		log.Fatalf("Error loading env file %s", err.Error())
+	}
+
+	return &Config{
 		Db: Db{
 			Uri: os.Getenv("DB_URI"),
 		},

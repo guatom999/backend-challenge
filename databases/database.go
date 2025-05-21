@@ -2,6 +2,7 @@ package databases
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -15,6 +16,8 @@ func DbConnect(pctx context.Context, cfg *config.Config) *mongo.Client {
 
 	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
 	defer cancel()
+
+	fmt.Println("db uri", cfg.Db.Uri)
 
 	cli, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.Db.Uri))
 	if err != nil {
