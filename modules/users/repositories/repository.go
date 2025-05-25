@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/guatom999/backend-challenge/modules"
+	"github.com/guatom999/backend-challenge/modules/users"
 	"github.com/guatom999/backend-challenge/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,10 +15,11 @@ import (
 type (
 	RepositoryInterface interface {
 		IsUserAlreadyExist(pctx context.Context, email string) bool
-		CreateUser(pctx context.Context, user *modules.User) error
-		GetAllUser(pctx context.Context) ([]*modules.ListUserRes, error)
-		GetUserById(pctx context.Context, Id string) (*modules.ListUserRes, error)
-		UpdateUser(pctx context.Context, Id string, userUpdateReq *modules.UpdateUser) error
+		CreateUser(pctx context.Context, user *users.User) error
+		FindUserCredential(pctx context.Context, email string) (*users.User, error)
+		GetAllUser(pctx context.Context) ([]*users.ListUserRes, error)
+		GetUserById(pctx context.Context, Id string) (*users.ListUserRes, error)
+		UpdateUser(pctx context.Context, Id string, userUpdateReq *users.UpdateUser) error
 		DeleteUser(pctx context.Context, Id string) error
 	}
 
@@ -39,7 +40,7 @@ func (r *repository) IsUserAlreadyExist(pctx context.Context, email string) bool
 	db := r.db.Database("user_db")
 	collection := db.Collection("users")
 
-	result := new(modules.User)
+	result := new(users.User)
 
 	if err := collection.FindOne(ctx, bson.M{"email": email}).Decode(result); err != nil {
 		return false
@@ -51,7 +52,30 @@ func (r *repository) IsUserAlreadyExist(pctx context.Context, email string) bool
 
 }
 
-func (r *repository) CreateUser(pctx context.Context, user *modules.User) error {
+func (r *repository) FindUserCredential(pctx context.Context, email string) (*users.User, error) {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*5)
+	defer cancel()
+
+	db := r.db.Database("user_db")
+	collection := db.Collection("users")
+
+	userRes := new(users.User)
+
+	if err := collection.FindOne(ctx, bson.M{"email": email}).Decode(userRes); err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Printf("Error: User Not Found")
+			return nil, errors.New("error: user not found")
+		}
+		log.Printf("Error: Credential Search Failed %s", err.Error())
+		return nil, errors.New("error: invalid email or password")
+	}
+
+	return userRes, nil
+
+}
+
+func (r *repository) CreateUser(pctx context.Context, user *users.User) error {
 
 	ctx, cancel := context.WithTimeout(pctx, time.Second*5)
 	defer cancel()
@@ -69,7 +93,7 @@ func (r *repository) CreateUser(pctx context.Context, user *modules.User) error 
 
 }
 
-func (r *repository) GetAllUser(pctx context.Context) ([]*modules.ListUserRes, error) {
+func (r *repository) GetAllUser(pctx context.Context) ([]*users.ListUserRes, error) {
 
 	ctx, cancel := context.WithTimeout(pctx, time.Second*5)
 	defer cancel()
@@ -80,20 +104,20 @@ func (r *repository) GetAllUser(pctx context.Context) ([]*modules.ListUserRes, e
 	cur, err := collection.Find(ctx, bson.M{})
 	if err != nil {
 		log.Printf("Error: Get All User Failed %s", err.Error())
-		return make([]*modules.ListUserRes, 0), errors.New("error: failed to get all user")
+		return make([]*users.ListUserRes, 0), errors.New("error: failed to get all user")
 	}
 
-	results := make([]*modules.ListUserRes, 0)
+	results := make([]*users.ListUserRes, 0)
 
 	for cur.Next(ctx) {
-		result := new(modules.User)
+		result := new(users.User)
 
 		if err := cur.Decode(result); err != nil {
 			log.Printf("Error: Get All User Failed %s", err.Error())
-			return make([]*modules.ListUserRes, 0), errors.New("error: failed to get all user")
+			return make([]*users.ListUserRes, 0), errors.New("error: failed to get all user")
 		}
 
-		results = append(results, &modules.ListUserRes{
+		results = append(results, &users.ListUserRes{
 			ID:    result.ID.Hex(),
 			Name:  result.Name,
 			Email: result.Email,
@@ -104,7 +128,7 @@ func (r *repository) GetAllUser(pctx context.Context) ([]*modules.ListUserRes, e
 
 }
 
-func (r *repository) GetUserById(pctx context.Context, Id string) (*modules.ListUserRes, error) {
+func (r *repository) GetUserById(pctx context.Context, Id string) (*users.ListUserRes, error) {
 
 	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
 	defer cancel()
@@ -112,14 +136,14 @@ func (r *repository) GetUserById(pctx context.Context, Id string) (*modules.List
 	db := r.db.Database("user_db")
 	collection := db.Collection("users")
 
-	result := new(modules.User)
+	result := new(users.User)
 
 	if err := collection.FindOne(ctx, bson.M{"_id": utils.ConvertStringToPrimitiveId(Id)}).Decode(result); err != nil {
 		log.Printf("Error: Get User By Id Failed %s", err.Error())
 		return nil, errors.New("errros: failed to get user by id")
 	}
 
-	return &modules.ListUserRes{
+	return &users.ListUserRes{
 		ID:    result.ID.Hex(),
 		Name:  result.Name,
 		Email: result.Email,
@@ -127,7 +151,7 @@ func (r *repository) GetUserById(pctx context.Context, Id string) (*modules.List
 
 }
 
-func (r *repository) UpdateUser(pctx context.Context, Id string, userUpdateReq *modules.UpdateUser) error {
+func (r *repository) UpdateUser(pctx context.Context, Id string, userUpdateReq *users.UpdateUser) error {
 
 	ctx, cancel := context.WithTimeout(pctx, time.Second*10)
 	defer cancel()

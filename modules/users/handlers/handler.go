@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/guatom999/backend-challenge/modules"
-	"github.com/guatom999/backend-challenge/modules/usecases"
+	"github.com/guatom999/backend-challenge/modules/users"
+	"github.com/guatom999/backend-challenge/modules/users/usecases"
 	"github.com/labstack/echo/v4"
 )
 
@@ -14,6 +14,7 @@ type (
 		Register(c echo.Context) error
 		GetAllUsers(c echo.Context) error
 		GetUserById(c echo.Context) error
+		Login(c echo.Context) error
 		UpdateUserDetail(c echo.Context) error
 		DeleteUser(c echo.Context) error
 	}
@@ -31,7 +32,7 @@ func (h *handler) Register(c echo.Context) error {
 
 	ctx := context.Background()
 
-	req := new(modules.CreateUserReq)
+	req := new(users.CreateUserReq)
 
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, "error: invalid request body")
@@ -42,6 +43,24 @@ func (h *handler) Register(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, "success")
+}
+
+func (h *handler) Login(c echo.Context) error {
+
+	ctx := context.Background()
+
+	req := new(users.LoginCredentialReq)
+
+	if err := c.Bind(req); err != nil {
+		return c.JSON(http.StatusBadRequest, "error: invalid request body")
+	}
+
+	userCredentail, err := h.usecase.Login(ctx, req)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, userCredentail)
 }
 
 func (h *handler) GetAllUsers(c echo.Context) error {
@@ -60,7 +79,7 @@ func (h *handler) GetUserById(c echo.Context) error {
 
 	ctx := context.Background()
 
-	req := new(modules.GetUserByIdReq)
+	req := new(users.GetUserByIdReq)
 
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, "error: invalid request body")
@@ -78,7 +97,7 @@ func (h *handler) UpdateUserDetail(c echo.Context) error {
 
 	ctx := context.Background()
 
-	req := new(modules.UpdateUserReq)
+	req := new(users.UpdateUserReq)
 
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, "error: invalid request body")
@@ -96,7 +115,7 @@ func (h *handler) DeleteUser(c echo.Context) error {
 
 	ctx := context.Background()
 
-	req := new(modules.UpdateUserReq)
+	req := new(users.UpdateUserReq)
 
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, "error: invalid request body")

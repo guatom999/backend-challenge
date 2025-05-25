@@ -11,6 +11,7 @@ type (
 	Config struct {
 		App App
 		Db  Db
+		Jwt Jwt
 	}
 	App struct {
 		Port string
@@ -18,6 +19,10 @@ type (
 
 	Db struct {
 		Uri string
+	}
+
+	Jwt struct {
+		Secret string
 	}
 )
 
@@ -33,6 +38,9 @@ func GetConfig() *Config {
 		},
 		Db: Db{
 			Uri: os.Getenv("DB_URI"),
+		},
+		Jwt: Jwt{
+			Secret: os.Getenv("JWT_SECRET"),
 		},
 	}
 }
