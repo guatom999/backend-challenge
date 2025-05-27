@@ -17,10 +17,11 @@ func (s *server) UserService() {
 	route.POST("/register", userHanlder.Register)
 	route.POST("/login", userHanlder.Login)
 
-	route.GET("/listalluser", userHanlder.GetAllUsers)
-	route.GET("/getuser", userHanlder.GetUserById)
+	route.GET("/listalluser", s.middleware.JwtAuthentication(userHanlder.GetAllUsers))
+	// route.GET("/listalluser", userHanlder.GetAllUsers)
+	route.GET("/getuser", s.middleware.JwtAuthentication(userHanlder.GetUserById))
 
-	route.PATCH("/updateuser", userHanlder.UpdateUserDetail)
-	route.DELETE("/deleteuser", userHanlder.DeleteUser)
+	route.PATCH("/updateuser", s.middleware.JwtAuthentication(userHanlder.UpdateUserDetail))
+	route.DELETE("/deleteuser", s.middleware.JwtAuthentication(userHanlder.DeleteUser))
 
 }

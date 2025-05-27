@@ -99,15 +99,16 @@ func (h *handler) UpdateUserDetail(c echo.Context) error {
 
 	req := new(users.UpdateUserReq)
 
+	userId := c.Get("user_id").(string)
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, "error: invalid request body")
 	}
 
-	if err := h.usecase.UpdateUserDetail(ctx, req); err != nil {
+	if err := h.usecase.UpdateUserDetail(ctx, userId, req); err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, "update success")
 
 }
 
@@ -115,16 +116,18 @@ func (h *handler) DeleteUser(c echo.Context) error {
 
 	ctx := context.Background()
 
-	req := new(users.UpdateUserReq)
+	// req := new(users.UpdateUserReq)
 
-	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, "error: invalid request body")
-	}
+	userId := c.Get("user_id").(string)
 
-	if err := h.usecase.UpdateUserDetail(ctx, req); err != nil {
+	// if err := c.Bind(req); err != nil {
+	// 	return c.JSON(http.StatusBadRequest, "error: invalid request body")
+	// }
+
+	if err := h.usecase.Deleteuser(ctx, userId); err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, "delete success")
 
 }

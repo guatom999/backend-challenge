@@ -1,12 +1,12 @@
 package jwtauth
 
 import (
+	"context"
 	"errors"
 	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/guatom999/backend-challenge/modules/users"
 	"github.com/guatom999/backend-challenge/utils"
 )
 
@@ -40,10 +40,8 @@ func (a *JwtToken) SignToken() string {
 
 }
 
-func ParseToken(secret string, tokenString string) (*UserClaims, error) {
-
-	token, err := jwt.ParseWithClaims(tokenString, &users.AuthClaims{}, func(token *jwt.Token) (any, error) {
-
+func ParseToken(pctx context.Context, secret string, tokenString string) (*UserClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &UserClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("error: unexpected singing method")
 		}
@@ -62,25 +60,28 @@ func ParseToken(secret string, tokenString string) (*UserClaims, error) {
 		}
 	}
 
-	// _ = token
-	if claims, ok := token.Claims.(*UserClaims); ok {
+	claims, ok := token.Claims.(*UserClaims)
+	if ok {
 		return claims, nil
 	}
 
-	return nil, nil
+	return nil, errors.New("error: token is invalid")
+
 }
 
-func NewJwtToken(secret string) AuthInterface {
+func NewJwtToken(secret string, claims *Claims) AuthInterface {
 
 	return &JwtToken{
 		Secret: []byte(secret),
 		Claims: &UserClaims{
-			Claims: &Claims{},
+			Claims: &Claims{
+				UserId: claims.UserId,
+			},
 			RegisteredClaims: jwt.RegisteredClaims{
 				Issuer:    "user-challenge",
 				Subject:   "jwt-token",
 				Audience:  []string{"user"},
-				ExpiresAt: jwt.NewNumericDate(utils.GetLocalBkkTime().Add(time.Second * 60)),
+				ExpiresAt: jwt.NewNumericDate(utils.GetLocalBkkTime().Add(time.Minute * 60)),
 				NotBefore: jwt.NewNumericDate(utils.GetLocalBkkTime()),
 				IssuedAt:  jwt.NewNumericDate(utils.GetLocalBkkTime()),
 			},

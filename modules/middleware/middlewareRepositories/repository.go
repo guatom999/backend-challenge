@@ -1,4 +1,4 @@
-package repositories
+package middlewareRepositories
 
 import "go.mongodb.org/mongo-driver/mongo"
 

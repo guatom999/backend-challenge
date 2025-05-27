@@ -28,12 +28,11 @@ type (
 	}
 
 	UpdateUserReq struct {
-		ID    string `json:"id"`
 		Name  string `json:"name"`
 		Email string `json:"email"`
 	}
 
-	DeleteUserReq struct {
-		ID string `json:"id"`
-	}
+	// DeleteUserReq struct {
+	// 	ID string `json:"id"`
+	// }
 )

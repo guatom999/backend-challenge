@@ -10,6 +10,9 @@ import (
 	"time"
 
 	"github.com/guatom999/backend-challenge/config"
+	"github.com/guatom999/backend-challenge/modules/middleware/middlewareHandlers"
+	"github.com/guatom999/backend-challenge/modules/middleware/middlewareRepositories"
+	"github.com/guatom999/backend-challenge/modules/middleware/middlewareUsecases"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,17 +24,28 @@ type (
 	}
 
 	server struct {
-		app *echo.Echo
-		cfg *config.Config
-		db  *mongo.Client
+		app        *echo.Echo
+		cfg        *config.Config
+		db         *mongo.Client
+		middleware middlewareHandlers.MiddlewareHandlerInterface
 	}
 )
 
+func NewMiddleware(cfg *config.Config, db *mongo.Client) middlewareHandlers.MiddlewareHandlerInterface {
+	middlewareRepo := middlewareRepositories.NewRepository(db)
+	middlewareUseCase := middlewareUsecases.NewMiddlewareUsecase(cfg, middlewareRepo)
+	middlewareHandler := middlewareHandlers.NewMiddlewareHandler(middlewareUseCase)
+
+	return middlewareHandler
+
+}
+
 func NewEchoServer(db *mongo.Client, cfg *config.Config) Server {
 	return &server{
-		app: echo.New(),
-		cfg: cfg,
-		db:  db,
+		app:        echo.New(),
+		cfg:        cfg,
+		db:         db,
+		middleware: NewMiddleware(cfg, db),
 	}
 }
 

@@ -19,7 +19,7 @@ type (
 		GetAllUses(pctx context.Context) ([]*users.ListUserRes, error)
 		GetUserById(pctx context.Context, Id string) (*users.ListUserRes, error)
 		Login(pctx context.Context, user *users.LoginCredentialReq) (*users.LoginCredentialRes, error)
-		UpdateUserDetail(pctx context.Context, updateReq *users.UpdateUserReq) error
+		UpdateUserDetail(pctx context.Context, userId string, updateReq *users.UpdateUserReq) error
 		Deleteuser(pctx context.Context, Id string) error
 	}
 
@@ -71,7 +71,9 @@ func (u *usecase) Login(pctx context.Context, user *users.LoginCredentialReq) (*
 		return nil, errors.New("error:invalid email or password")
 	}
 
-	claims := jwtauth.NewJwtToken(u.cfg.Jwt.Secret).SignToken()
+	claims := jwtauth.NewJwtToken(u.cfg.Jwt.Secret, &jwtauth.Claims{
+		UserId: userCredential.ID.Hex(),
+	}).SignToken()
 
 	// claims := users.AuthClaims{
 	// 	Claims: &users.Claims{
@@ -123,9 +125,9 @@ func (u *usecase) GetUserById(pctx context.Context, Id string) (*users.ListUserR
 
 }
 
-func (u *usecase) UpdateUserDetail(pctx context.Context, updateReq *users.UpdateUserReq) error {
+func (u *usecase) UpdateUserDetail(pctx context.Context, userId string, updateReq *users.UpdateUserReq) error {
 
-	if err := u.repository.UpdateUser(pctx, updateReq.ID, &users.UpdateUser{
+	if err := u.repository.UpdateUser(pctx, userId, &users.UpdateUser{
 		Name:  updateReq.Name,
 		Email: updateReq.Email,
 	}); err != nil {
