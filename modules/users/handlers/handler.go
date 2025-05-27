@@ -13,6 +13,7 @@ type (
 	HandlerInterface interface {
 		Register(c echo.Context) error
 		GetAllUsers(c echo.Context) error
+		CountUser(c echo.Context) error
 		GetUserById(c echo.Context) error
 		Login(c echo.Context) error
 		UpdateUserDetail(c echo.Context) error
@@ -91,6 +92,20 @@ func (h *handler) GetUserById(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, user)
+}
+
+func (h *handler) CountUser(c echo.Context) error {
+
+	ctx := context.Background()
+
+	result, err := h.usecase.CountUser(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, result)
+
 }
 
 func (h *handler) UpdateUserDetail(c echo.Context) error {

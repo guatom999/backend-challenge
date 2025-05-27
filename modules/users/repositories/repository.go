@@ -19,6 +19,7 @@ type (
 		FindUserCredential(pctx context.Context, email string) (*users.User, error)
 		GetAllUser(pctx context.Context) ([]*users.ListUserRes, error)
 		GetUserById(pctx context.Context, Id string) (*users.ListUserRes, error)
+		CountUser(pctx context.Context) (int64, error)
 		UpdateUser(pctx context.Context, Id string, userUpdateReq *users.UpdateUser) error
 		DeleteUser(pctx context.Context, Id string) error
 	}
@@ -72,6 +73,24 @@ func (r *repository) FindUserCredential(pctx context.Context, email string) (*us
 	}
 
 	return userRes, nil
+
+}
+
+func (r *repository) CountUser(pctx context.Context) (int64, error) {
+
+	ctx, cancel := context.WithTimeout(pctx, time.Second*5)
+	defer cancel()
+
+	db := r.db.Database("user_db")
+	collection := db.Collection("users")
+
+	result, err := collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		log.Printf("Error: Count User Failed %s", err.Error())
+		return 0, errors.New("error: failed to count user")
+	}
+
+	return result, nil
 
 }
 

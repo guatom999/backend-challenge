@@ -17,6 +17,7 @@ type (
 	UsecaseInterface interface {
 		Register(pctx context.Context, user *users.CreateUserReq) error
 		GetAllUses(pctx context.Context) ([]*users.ListUserRes, error)
+		CountUser(pctx context.Context) (int64, error)
 		GetUserById(pctx context.Context, Id string) (*users.ListUserRes, error)
 		Login(pctx context.Context, user *users.LoginCredentialReq) (*users.LoginCredentialRes, error)
 		UpdateUserDetail(pctx context.Context, userId string, updateReq *users.UpdateUserReq) error
@@ -111,6 +112,12 @@ func (u *usecase) GetAllUses(pctx context.Context) ([]*users.ListUserRes, error)
 	}
 
 	return users, nil
+
+}
+
+func (u *usecase) CountUser(pctx context.Context) (int64, error) {
+
+	return u.repository.CountUser(pctx)
 
 }
 
