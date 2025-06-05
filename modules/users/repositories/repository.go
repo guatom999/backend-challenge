@@ -9,13 +9,14 @@ import (
 	"github.com/guatom999/backend-challenge/modules/users"
 	"github.com/guatom999/backend-challenge/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type (
 	RepositoryInterface interface {
 		IsUserAlreadyExist(pctx context.Context, email string) bool
-		CreateUser(pctx context.Context, user *users.User) error
+		CreateUser(pctx context.Context, user *users.User) (primitive.ObjectID, error)
 		FindUserCredential(pctx context.Context, email string) (*users.User, error)
 		GetAllUser(pctx context.Context) ([]*users.ListUserRes, error)
 		GetUserById(pctx context.Context, Id string) (*users.ListUserRes, error)
@@ -94,7 +95,7 @@ func (r *repository) CountUser(pctx context.Context) (int64, error) {
 
 }
 
-func (r *repository) CreateUser(pctx context.Context, user *users.User) error {
+func (r *repository) CreateUser(pctx context.Context, user *users.User) (primitive.ObjectID, error) {
 
 	ctx, cancel := context.WithTimeout(pctx, time.Second*5)
 	defer cancel()
@@ -102,13 +103,13 @@ func (r *repository) CreateUser(pctx context.Context, user *users.User) error {
 	db := r.db.Database("user_db")
 	collection := db.Collection("users")
 
-	_, err := collection.InsertOne(ctx, user)
+	result, err := collection.InsertOne(ctx, user)
 	if err != nil {
 		log.Printf("Error: Create User Failed %s", err.Error())
-		return errors.New("error: failed to create user")
+		return primitive.NilObjectID, errors.New("error: failed to create user")
 	}
 
-	return nil
+	return result.InsertedID.(primitive.ObjectID), nil
 
 }
 

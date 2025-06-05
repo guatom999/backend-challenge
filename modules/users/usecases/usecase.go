@@ -15,7 +15,7 @@ import (
 
 type (
 	UsecaseInterface interface {
-		Register(pctx context.Context, user *users.CreateUserReq) error
+		Register(pctx context.Context, user *users.CreateUserReq) (*users.CreateUserRes, error)
 		GetAllUses(pctx context.Context) ([]*users.ListUserRes, error)
 		CountUser(pctx context.Context) (int64, error)
 		GetUserById(pctx context.Context, Id string) (*users.ListUserRes, error)
@@ -34,29 +34,34 @@ func NewUseCase(cfg *config.Config, repository repositories.RepositoryInterface)
 	return &usecase{cfg: cfg, repository: repository}
 }
 
-func (u *usecase) Register(pctx context.Context, user *users.CreateUserReq) error {
+func (u *usecase) Register(pctx context.Context, user *users.CreateUserReq) (*users.CreateUserRes, error) {
 
 	if u.repository.IsUserAlreadyExist(pctx, user.Email) {
-		return errors.New("error: user already exist")
+		return nil, errors.New("error: user already exist")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 	if err != nil {
 		log.Printf("Error: Failed to hash password %s", err.Error())
-		return err
+		return nil, err
 	}
 
-	if err := u.repository.CreateUser(pctx, &users.User{
+	userId, err := u.repository.CreateUser(pctx, &users.User{
 		Name:      user.Name,
 		Email:     user.Email,
 		Password:  string(hashedPassword),
 		IsDeleted: false,
 		CreatedAt: utils.GetLocalBkkTime(),
-	}); err != nil {
-		return err
+	})
+	if err != nil {
+		return &users.CreateUserRes{
+			ID: userId.Hex(),
+		}, err
 	}
 
-	return nil
+	return &users.CreateUserRes{
+		ID: userId.Hex(),
+	}, nil
 
 }
 

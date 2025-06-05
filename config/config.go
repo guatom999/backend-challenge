@@ -52,8 +52,33 @@ func GetMigrateConfig() *Config {
 	}
 
 	return &Config{
+		App: App{
+			Port: os.Getenv("APP_PORT"),
+		},
 		Db: Db{
 			Uri: os.Getenv("DB_URI"),
+		},
+		Jwt: Jwt{
+			Secret: os.Getenv("JWT_SECRET"),
+		},
+	}
+}
+
+func GetTestConfig() *Config {
+
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Fatalf("Error loading env file %s", err.Error())
+	}
+
+	return &Config{
+		App: App{
+			Port: os.Getenv("APP_PORT"),
+		},
+		Db: Db{
+			Uri: os.Getenv("DB_URI"),
+		},
+		Jwt: Jwt{
+			Secret: os.Getenv("JWT_SECRET"),
 		},
 	}
 }

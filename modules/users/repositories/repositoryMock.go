@@ -5,6 +5,7 @@ import (
 
 	"github.com/guatom999/backend-challenge/modules/users"
 	"github.com/stretchr/testify/mock"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type RepositoryMock struct {
@@ -19,9 +20,9 @@ func (m *RepositoryMock) IsUserAlreadyExist(pctx context.Context, email string) 
 	args := m.Called(pctx, email)
 	return args.Bool(0)
 }
-func (m *RepositoryMock) CreateUser(pctx context.Context, user *users.User) error {
+func (m *RepositoryMock) CreateUser(pctx context.Context, user *users.User) (primitive.ObjectID, error) {
 	args := m.Called(pctx, user)
-	return args.Error(0)
+	return args.Get(0).(primitive.ObjectID), args.Error(1)
 }
 func (m *RepositoryMock) FindUserCredential(pctx context.Context, email string) (*users.User, error) {
 	args := m.Called(pctx, email)

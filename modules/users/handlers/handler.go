@@ -39,11 +39,12 @@ func (h *handler) Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "error: invalid request body")
 	}
 
-	if err := h.usecase.Register(ctx, req); err != nil {
+	result, err := h.usecase.Register(ctx, req)
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, "success")
+	return c.JSON(http.StatusOK, result)
 }
 
 func (h *handler) Login(c echo.Context) error {
